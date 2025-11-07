@@ -268,7 +268,7 @@
             <span id="player1">Bạn</span>
         </div>
         <div class="legend-item">
-            <span class="legend-symbol">⃝</span>
+            <span class="legend-symbol">◯</span>
             <span id="player2">AI</span>
         </div>
     </div>
@@ -462,7 +462,7 @@
             document.getElementById('moves').textContent = moveCount;
             
             const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            cell.textContent = currentPlayer === 'X' ? '✕' : '⃝';
+            cell.textContent = currentPlayer === 'X' ? '✕' : '◯';
             cell.classList.add(currentPlayer.toLowerCase());
             cell.disabled = true;
             

@@ -204,14 +204,10 @@
             color: #666;
         }
 
-        .legend-item:last-child .legend-symbol {
-            position: relative;
-            top: -2px;
-        }
-
         .legend-symbol {
             font-size: 16px;
             font-weight: 600;
+            line-height: 1;
         }
 
         .hint {
@@ -334,9 +330,9 @@
             startX = touch.clientX - currentTranslateX;
             startY = touch.clientY - currentTranslateY;
 
-            if (e.cancelable) {
-                e.preventDefault();
-            }
+            // if (e.cancelable) {
+            //     e.preventDefault();
+            // }
         }
 
         function handleDragMove(e) {

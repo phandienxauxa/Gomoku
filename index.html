@@ -255,7 +255,7 @@
         <div class="status-bar">
             <div>Nước: <span id="moves">0</span></div>
             <div class="status-text" id="status">Lượt của bạn</div>
-            <div>Mode: <span id="mode-display">AI</div>
+            <div>With: <span id="mode-display">Thiên</div>
         </div>
     </div>
 
@@ -274,7 +274,7 @@
         </div>
         <div class="legend-item">
             <span class="legend-symbol">◯</span>
-            <span id="player2">AI</span>
+            <span id="player2">Thiên</span>
         </div>
     </div>
 
@@ -443,9 +443,9 @@
             event.target.classList.add('active');
             
             if (mode === 'ai') {
-                document.getElementById('mode-display').textContent = 'AI';
+                document.getElementById('mode-display').textContent = 'Thiên';
                 document.getElementById('player1').textContent = 'Bạn';
-                document.getElementById('player2').textContent = 'AI';
+                document.getElementById('player2').textContent = 'Thiên';
             } else {
                 document.getElementById('mode-display').textContent = '2P';
                 document.getElementById('player1').textContent = 'P1';
@@ -474,11 +474,11 @@
             const winLine = checkWinner(row, col);
             if (winLine) {
                 highlightWinLine(winLine);
-                const winner = currentPlayer === 'X' ? (gameMode === 'ai' ? 'Bạn' : 'P1') : (gameMode === 'ai' ? 'AI' : 'P2');
+                const winner = currentPlayer === 'X' ? (gameMode === 'ai' ? 'Bạn' : 'P1') : (gameMode === 'ai' ? 'Thiên' : 'P2');
                 document.getElementById('status').textContent = `${winner} thắng!`;
                 gameOver = true;
                 document.getElementById('legend').style.display = 'none';
-                setTimeout(() => showHint(`🎉 ${winner} chiến thắng!`), 100);
+                setTimeout(() => showHint(`🎉 ${winner} thắng rồi nha lêu lêu^^`), 100);
                 return;
             }
             
@@ -504,7 +504,7 @@
         function updateStatus() {
             const statusEl = document.getElementById('status');
             if (gameMode === 'ai') {
-                statusEl.textContent = currentPlayer === 'X' ? 'Lượt của bạn' : 'Lượt AI';
+                statusEl.textContent = currentPlayer === 'X' ? 'Lượt của bạn' : 'Lượt của Thiên';
             } else {
                 statusEl.textContent = currentPlayer === 'X' ? 'Lượt P1' : 'Lượt P2';
             }

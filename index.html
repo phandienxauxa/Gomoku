@@ -285,12 +285,6 @@
         let translateX = 0, translateY = 0;
         let currentTranslateX = 0, currentTranslateY = 0;
 
-        let scale = 1;
-        let minScale = 0.5;
-        let maxScale = 3;
-        let isPinching = false;
-        let lastPinching = 0;
-
         const boardWrapper = document.getElementById('boardWrapper');
         const gameContainer = document.getElementById('gameContainer');
 
@@ -314,8 +308,8 @@
         }
 
         // Touch and mouse events
-        gameContainer.addEventListener('mousedown', handleDragStart);
-        gameContainer.addEventListener('touchstart', handleDragStart, { passive: false });
+        boardWrapper.addEventListener('mousedown', handleDragStart);
+        boardWrapper.addEventListener('touchstart', handleDragStart, { passive: false });
         
         document.addEventListener('mousemove', handleDragMove);
         document.addEventListener('touchmove', handleDragMove, { passive: false });
@@ -324,27 +318,14 @@
         document.addEventListener('touchend', handleDragEnd);
 
         function handleDragStart(e) {
-            // Xử lý Pinch (2 ngón tay)
-            if (e.touches && e.touches.length === 2) {
-                isPinching = true;
-                isDragging = false; // Dừng kéo
-                boardWrapper.classList.remove('dragging');
-                lastPinchDist = getPinchDist(e);
-                if (e.cancelable) e.preventDefault();
-                    return;
-            }
-
-            // Xử lý Pan (1 ngón tay hoặc chuột)
-            // Chỉ kéo nếu không click vào ô
             if (e.target.classList.contains('cell')) return;
 
-        isDragging = true;
-        isPinching = false;
-        boardWrapper.classList.add('dragging');
+            isDragging = true;
+            boardWrapper.classList.add('dragging');
 
-        const touch = e.touches ? e.touches[0] : e;
-        startX = touch.clientX - currentTranslateX;
-        startY = touch.clientY - currentTranslateY;
+            const touch = e.touches ? e.touches[0] : e;
+            startX = touch.clientX - currentTranslateX;
+            startY = touch.clientY - currentTranslateY;
 
             if (e.cancelable) {
                 e.preventDefault();
@@ -352,52 +333,25 @@
         }
 
         function handleDragMove(e) {
-            if(e.cancelable) e.preventDefault();
+                if (!isDragging) return;
 
-            if (isPinching && e.touches && e.touches.length == 2) {
-                // -- Logic Zoom-to-Center --
-                const newDist = getPinchDist(e);
-                const newScale = scale * (newDist / lastPinchDist);
-                const oldScale = scale;
-                scale = Math.max(minScale, Math.min(newScale, maxScale)); // Giới hạn scale
-                lastPinchDist = newDist;
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
 
-                // Tinh toan tam diem chum (pinch center)
-                const containerRect = gameContainer.getBoundingClientRect();
-                const pinchCenterX_viewport = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                const pinchCenterY_viewport = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const touch = e.touches ? e.touches[0] : e;
+            currentTranslateX = touch.clientX - startX;
+            currentTranslateY = touch.clientY - startY;
 
-                // Toa do tam diem chum tuong doi so voi container
-                const pinchX = pinchCenterX_viewport - containerRect.left;
-                const pinchY = pinchCenterY_viewport - containerRect.top;
-                
-                // Tinh toan translate moi de giu nguyen zoom
-                currentTranslateX = pinchX - (pinchX - currentTranslateX) * (scale / oldScale);
-                currentTranslateY = pinchY - (pinchY - currentTranslateY) * (scale / oldScale);
-
-                applyTransform();   
-            }
-
-            else if (isDragging) {
-                // --- Logic Pan ---
-                const touch = e.touches ? e.touches[0] : e;
-                currentTranslateX = touch.clientX - startX;
-                currentTranslateY = touch.clientY - startY;
-
-                applyTransform();
-            }
+            boardWrapper.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px)`;
         }
 
 
         function handleDragEnd(e) {
-            if (isPinching) {
-                isPinching = false;
-                lastPinching = 0;
-            }
-            if (isDragging) {
-                isDragging = false;
-                boardWrapper.classList.remove('dragging');
-            }
+            if (!isDragging) return; 
+
+            isDragging = false;
+            boardWrapper.classList.remove('dragging');
 
             // Luu lai vi tri cuoi cung
             translateX = currentTranslateX;
@@ -553,17 +507,6 @@
                 }
             }
             return null;
-        }
-
-        // Lấy khoảng cách giữa 2 ngón
-        function getPinchDist(e) {
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            return Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-        }
-
-        function applyTransform() {
-            boardWrapper.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${scale})`;
         }
 
         function highlightWinLine(positions) {

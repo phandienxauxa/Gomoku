@@ -268,7 +268,7 @@
     </div>
 
     <script>
-        const BOARD_SIZE = 15;
+        const BOARD_SIZE = 30;    // Kích thước bàn cờ
         const WIN_LENGTH = 5;
         const SEARCH_DEPTH = 4;   // AI sẽ dự đoán 4 nước đi sau đó của mình
         
@@ -310,9 +310,7 @@
             currentTranslateX = translateX;
             currentTranslateY = translateY;
             
-            scale = 1 // Reset scale ve 1
-
-            applyTransform();
+            boardWrapper.style.transform = `translate(${translateX}px, ${translateY}px)`;
         }
 
         // Touch and mouse events

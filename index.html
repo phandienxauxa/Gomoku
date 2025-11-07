@@ -144,11 +144,11 @@
         }
 
         .cell.x {
-            color: #1a1a1a;
+            color: #fe0000;
         }
 
         .cell.o {
-            color: #666;
+            color: #000000;
         }
 
         .cell.win {
@@ -238,7 +238,7 @@
         <div class="title">GOMOKU</div>
         <div class="controls">
             <button class="btn active" onclick="setMode('ai', event)">AI</button>
-            <button class="btn" onclick="setMode('2player', event)">2 Người</button>
+            <button class="btn" onclick="setMode('2player', event)">Solo</button>
             <button class="btn" onclick="resetGame()">Game Mới</button>
         </div>
         <div class="status-bar">
@@ -254,7 +254,7 @@
         </div>
     </div>
 
-    <div class="thinking" id="thinking" style="display:none;">AI đang suy nghĩ...</div>
+    <div class="thinking" id="thinking" style="display:none;">Đợi mình một xíu...</div>
 
     <div class="legend" id="legend">
         <div class="legend-item">
@@ -262,13 +262,13 @@
             <span id="player1">Bạn</span>
         </div>
         <div class="legend-item">
-            <span class="legend-symbol">○</span>
+            <span class="legend-symbol">⃝</span>
             <span id="player2">AI</span>
         </div>
     </div>
 
     <script>
-        const BOARD_SIZE = 30;    // Kích thước bàn cờ
+        const BOARD_SIZE = 15;    // Kích thước bàn cờ
         const WIN_LENGTH = 5;
         const SEARCH_DEPTH = 4;   // AI sẽ dự đoán 4 nước đi sau đó của mình
         
@@ -318,7 +318,7 @@
         document.addEventListener('touchend', handleDragEnd);
 
         function handleDragStart(e) {
-            // if (e.target.classList.contains('cell')) return;
+            //if (e.target.classList.contains('cell')) return;
 
             isDragging = true;
             boardWrapper.classList.add('dragging');
@@ -400,9 +400,6 @@
             // Center board after a short delay to ensure proper rendering
             setTimeout(() => {
                 centerBoard();
-                if (moveCount === 0) {
-                    showHint('👆 Kéo để di chuyển, chụm để zoom');
-                }
             }, 100);
         }
 
@@ -436,7 +433,7 @@
             document.getElementById('moves').textContent = moveCount;
             
             const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            cell.textContent = currentPlayer === 'X' ? '✕' : '○';
+            cell.textContent = currentPlayer === 'X' ? '✕' : '⃝';
             cell.classList.add(currentPlayer.toLowerCase());
             cell.disabled = true;
             

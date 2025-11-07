@@ -156,7 +156,7 @@
             color: white !important;
             animation: winPulse 0.4s ease 3;
         }
-
+        
         @keyframes winPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.15); }
@@ -199,7 +199,7 @@
 
         .legend-item {
             display: flex;
-            align-items: center;
+            align-items: baseline;
             gap: 6px;
             color: #666;
         }
@@ -209,6 +209,11 @@
             font-weight: 600;
             line-height: 1;
         }
+
+        /* .legend-item:last-child .legend-symbol {
+            position: relative;
+            top: -1px;
+        } */
 
         .hint {
             position: fixed;
@@ -272,7 +277,8 @@
         const BOARD_SIZE = 30;    // Kích thước bàn cờ
         const WIN_LENGTH = 5;
         const SEARCH_DEPTH = 4;   // AI sẽ dự đoán 4 nước đi sau đó của mình
-        
+        const DRAG_THRESHOLD = 5;
+
         let board = [];
         let currentPlayer = 'X';
         let gameOver = false;
@@ -327,8 +333,8 @@
             boardWrapper.classList.add('dragging');
 
             const touch = e.touches ? e.touches[0] : e;
-            startX = touch.clientX - currentTranslateX;
-            startY = touch.clientY - currentTranslateY;
+            startX = touch.clientX;
+            startY = touch.clientY;
 
             // if (e.cancelable) {
             //     e.preventDefault();
@@ -338,15 +344,27 @@
         function handleDragMove(e) {
                 if (!isDragging) return;
 
-                didDrag = true;
+                const touch = e.touches ? e.touches[0] : e;
+                const dx = Math.abs(touch.clientX - startX);
+                const dy = Math.abs(touch.clientY - startY);
+
+                if (!didDrag) {
+                    if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+                        didDrag = true;
+                    } else {
+                        return;
+                    }
+                }
 
                 if (e.cancelable) {
                     e.preventDefault();
                 }
 
-            const touch = e.touches ? e.touches[0] : e;
-            currentTranslateX = touch.clientX - startX;
-            currentTranslateY = touch.clientY - startY;
+                const deltaX = toucd.clientX - startX;
+                const deltaY = toucd.clientY - startY;
+
+            currentTranslateX = translateX + deltaX
+            currentTranslateY = translateY + deltaY;
 
             boardWrapper.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px)`;
         }

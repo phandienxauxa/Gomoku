@@ -156,7 +156,7 @@
             color: white !important;
             animation: winPulse 0.4s ease 3;
         }
-        
+
         @keyframes winPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.15); }
@@ -360,10 +360,10 @@
                     e.preventDefault();
                 }
 
-                const deltaX = toucd.clientX - startX;
-                const deltaY = toucd.clientY - startY;
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
 
-            currentTranslateX = translateX + deltaX
+            currentTranslateX = translateX + deltaX;
             currentTranslateY = translateY + deltaY;
 
             boardWrapper.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px)`;

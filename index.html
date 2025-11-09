@@ -111,6 +111,8 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
+            /* Thêm transform-origin để zoom mượt hơn (mặc dù sẽ tính toán lại) */
+            transform-origin: 0 0;
         }
 
         .board-wrapper.dragging {
@@ -215,11 +217,6 @@
             line-height: 1;
         }
 
-        /* .legend-item:last-child .legend-symbol {
-            position: relative;
-            top: -1px;
-        } */
-
         .hint {
             position: fixed;
             top: 50%;
@@ -279,10 +276,12 @@
     </div>
 
     <script>
-        const BOARD_SIZE = 30;    // Kích thước bàn cờ
+        const BOARD_SIZE = 30;
         const WIN_LENGTH = 5;
-        const SEARCH_DEPTH = 4;   // AI sẽ dự đoán 4 nước đi sau đó của mình
+        const SEARCH_DEPTH = 4;
         const DRAG_THRESHOLD = 5;
+        const MIN_SCALE = 0.5;
+        const MAX_SCALE = 3;
 
         let board = [];
         let currentPlayer = 'X';
@@ -291,15 +290,22 @@
         let moveCount = 0;
         let thinking = false;
 
-        // Drag functionality
+        // Drag and Zoom functionality
         let didDrag = false;
         let isDragging = false;
+        let isPinching = false;
         let startX, startY;
         let translateX = 0, translateY = 0;
         let currentTranslateX = 0, currentTranslateY = 0;
+        let scale = 1, currentScale = 1;
+        let initialPinchDistance = 0;
 
         const boardWrapper = document.getElementById('boardWrapper');
         const gameContainer = document.getElementById('gameContainer');
+
+        function applyTransform() {
+            boardWrapper.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
+        }
 
         function centerBoard() {
             const containerRect = gameContainer.getBoundingClientRect();
@@ -313,11 +319,20 @@
             
             translateX = (containerRect.width - boardWidth) / 2;
             translateY = (containerRect.height - boardHeight) / 2;
+            scale = 1;
             
             currentTranslateX = translateX;
             currentTranslateY = translateY;
+            currentScale = scale;
             
-            boardWrapper.style.transform = `translate(${translateX}px, ${translateY}px)`;
+            applyTransform();
+        }
+
+        // Helper function to get distance between two touch points
+        function getPinchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
         }
 
         // Touch and mouse events
@@ -330,25 +345,58 @@
         document.addEventListener('mouseup', handleDragEnd);
         document.addEventListener('touchend', handleDragEnd);
 
+        // Add wheel event for zooming
+        gameContainer.addEventListener('wheel', handleWheelZoom, { passive: false });
+
         function handleDragStart(e) {
-            //if (e.target.classList.contains('cell')) return;
+            // Check for pinch
+            if (e.touches && e.touches.length === 2) {
+                e.preventDefault();
+                isPinching = true;
+                isDragging = false;
+                initialPinchDistance = getPinchDistance(e.touches);
+                scale = currentScale; // Store scale at pinch start
+            } 
+            // Check for drag
+            else {
+                isDragging = true;
+                isPinching = false;
+                boardWrapper.classList.add('dragging');
 
-            isDragging = true;
+                const touch = e.touches ? e.touches[0] : e;
+                startX = touch.clientX;
+                startY = touch.clientY;
+            }
             didDrag = false;
-            boardWrapper.classList.add('dragging');
-
-            const touch = e.touches ? e.touches[0] : e;
-            startX = touch.clientX;
-            startY = touch.clientY;
-
-            // if (e.cancelable) {
-            //     e.preventDefault();
-            // }
         }
 
         function handleDragMove(e) {
-                if (!isDragging) return;
+            if (isPinching) {
+                if (!e.touches || e.touches.length !== 2) return;
+                
+                e.preventDefault();
+                didDrag = true;
 
+                const newDistance = getPinchDistance(e.touches);
+                const scaleRatio = newDistance / initialPinchDistance;
+                
+                const newScale = scale * scaleRatio;
+                currentScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+
+                // --- Zoom to center of pinch ---
+                const containerRect = gameContainer.getBoundingClientRect();
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                
+                const mx = midX - containerRect.left;
+                const my = midY - containerRect.top;
+
+                // Logic to keep the zoom point stationary relative to the screen
+                // tx_new = mx - ((mx - tx_old) / s_old) * s_new
+                currentTranslateX = mx - ((mx - translateX) / scale) * currentScale;
+                currentTranslateY = my - ((my - translateY) / scale) * currentScale;
+
+            } else if (isDragging) {
                 const touch = e.touches ? e.touches[0] : e;
                 const dx = Math.abs(touch.clientX - startX);
                 const dy = Math.abs(touch.clientY - startY);
@@ -368,22 +416,54 @@
                 const deltaX = touch.clientX - startX;
                 const deltaY = touch.clientY - startY;
 
-            currentTranslateX = translateX + deltaX;
-            currentTranslateY = translateY + deltaY;
+                currentTranslateX = translateX + deltaX;
+                currentTranslateY = translateY + deltaY;
+            } else {
+                return;
+            }
 
-            boardWrapper.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px)`;
+            applyTransform();
         }
 
-
         function handleDragEnd(e) {
-            if (!isDragging) return; 
+            if (isPinching) {
+                if (!e.touches || e.touches.length < 2) {
+                    isPinching = false;
+                    scale = currentScale; // Save new base scale
+                    translateX = currentTranslateX; // Save new base translate
+                    translateY = currentTranslateY;
+                }
+            } else if (isDragging) {
+                isDragging = false;
+                boardWrapper.classList.remove('dragging');
+                translateX = currentTranslateX;
+                translateY = currentTranslateY;
+            }
+        }
 
-            isDragging = false;
-            boardWrapper.classList.remove('dragging');
+        function handleWheelZoom(e) {
+            e.preventDefault();
+            didDrag = true; // Prevent click
 
-            // Luu lai vi tri cuoi cung
+            const delta = e.deltaY > 0 ? -0.1 : 0.1; // Zoom direction and speed
+            const newScale = scale + delta;
+            currentScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+
+            // --- Zoom to cursor position ---
+            const containerRect = gameContainer.getBoundingClientRect();
+            const mx = e.clientX - containerRect.left;
+            const my = e.clientY - containerRect.top;
+
+            // Logic to keep the zoom point stationary
+            currentTranslateX = mx - ((mx - translateX) / scale) * currentScale;
+            currentTranslateY = my - ((my - translateY) / scale) * currentScale;
+            
+            // Store new base values
+            scale = currentScale;
             translateX = currentTranslateX;
             translateY = currentTranslateY;
+
+            applyTransform();
         }
 
         function showHint(message) {
